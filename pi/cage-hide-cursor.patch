@@ -1,0 +1,61 @@
+diff --git a/cage.c b/cage.c
+index 86b2848..d4e2d53 100644
+--- a/cage.c
++++ b/cage.c
+@@ -220,6 +220,7 @@ usage(FILE *file, const char *cage)
+ 	fprintf(file,
+ 		"Usage: %s [OPTIONS] [--] APPLICATION\n"
+ 		"\n"
++		" -c\t Hide cursor\n"
+ 		" -d\t Don't draw client side decorations, when possible\n"
+ 		" -h\t Display this help message\n"
+ 		" -m extend Extend the display across all connected outputs (default)\n"
+@@ -235,8 +236,11 @@ static bool
+ parse_args(struct cg_server *server, int argc, char *argv[])
+ {
+ 	int c;
+-	while ((c = getopt(argc, argv, "dhm:sv")) != -1) {
++	while ((c = getopt(argc, argv, "cdhm:sv")) != -1) {
+ 		switch (c) {
++		case 'c':
++			server->hide_cursor = true;
++			break;
+ 		case 'd':
+ 			server->xdg_decoration = true;
+ 			break;
+diff --git a/seat.c b/seat.c
+index 22d32e0..73f34c2 100644
+--- a/seat.c
++++ b/seat.c
+@@ -127,8 +127,8 @@ seat_update_capabilities(struct cg_seat *seat)
+ 	}
+ 	wlr_seat_set_capabilities(seat->seat, caps);
+ 
+-	/* Hide cursor if the seat doesn't have pointer capability. */
+-	if ((caps & WL_SEAT_CAPABILITY_POINTER) == 0) {
++	/* Hide cursor if requested or if the seat doesn't have pointer capability. */
++	if (seat->server->hide_cursor || (caps & WL_SEAT_CAPABILITY_POINTER) == 0) {
+ 		wlr_cursor_unset_image(seat->cursor);
+ 	} else {
+ 		wlr_cursor_set_xcursor(seat->cursor, seat->xcursor_manager, DEFAULT_XCURSOR);
+@@ -482,7 +482,7 @@ handle_request_set_cursor(struct wl_listener *listener, void *data)
+ 
+ 	/* This can be sent by any client, so we check to make sure
+ 	 * this one actually has pointer focus first. */
+-	if (focused_client == event->seat_client->client) {
++	if (focused_client == event->seat_client->client && !seat->server->hide_cursor) {
+ 		wlr_cursor_set_surface(seat->cursor, event->surface, event->hotspot_x, event->hotspot_y);
+ 	}
+ }
+diff --git a/server.h b/server.h
+index 03f8c78..04f1e95 100644
+--- a/server.h
++++ b/server.h
+@@ -64,6 +64,7 @@ struct cg_server {
+ 	bool xdg_decoration;
+ 	bool allow_vt_switch;
+ 	bool return_app_code;
++	bool hide_cursor;
+ 	bool terminated;
+ };
+ 

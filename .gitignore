@@ -1,0 +1,35 @@
+# Installed dependencies and local runtime state
+node_modules/
+data-cache/*
+!data-cache/.gitkeep
+
+# Image-builder checkout, credentials in generated config, and disk images
+/image-builder/work/
+/image-builder/output/
+*.img
+*.img.*
+*.iso
+*.zip
+*.bmap
+*.ext4
+
+# Credentials and machine-specific settings
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.codex
+.agents/
+.vscode/
+.idea/
+
+# Test/build output and editor/OS files
+coverage/
+test-results/
+playwright-report/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db
+Desktop.ini

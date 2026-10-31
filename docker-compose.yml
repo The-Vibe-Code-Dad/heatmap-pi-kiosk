@@ -1,0 +1,13 @@
+services:
+  heatmap:
+    build: .
+    container_name: heatmap-pi-kiosk
+    environment:
+      HOST: 0.0.0.0
+      PORT: 3000
+      REFRESH_MS: 15000
+    ports:
+      - "3100:3000"
+    volumes:
+      - ./data-cache:/app/data-cache
+    restart: unless-stopped

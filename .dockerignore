@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+coverage
+data-cache
+.git
+.DS_Store
+image-builder/work
+image-builder/output
+test-results
+playwright-report
+.env
+.env.*
+*.img
+*.img.*
+*.zip
+*.log

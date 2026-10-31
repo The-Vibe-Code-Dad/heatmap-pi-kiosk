@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Heat Map Board</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background: #03070d;
+        color: #f1f7ff;
+        font-family: sans-serif;
+        cursor: none;
+      }
+
+      .startup-splash {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: #03070d;
+        text-align: center;
+      }
+    </style>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="startup-splash" id="startup-splash" aria-hidden="false">
+      <div class="startup-splash-card">
+        <img class="startup-splash-logo" src="/logo.png" alt="" />
+        <div class="startup-splash-eyebrow">Heat Map Pi Kiosk</div>
+        <h1 class="startup-splash-title" id="startup-splash-title">Starting Kiosk</h1>
+        <p class="startup-splash-status" id="startup-splash-status">Preparing the touchscreen app...</p>
+        <p class="startup-splash-message" id="startup-splash-message">
+          The kiosk will open the board or Wi-Fi setup in a moment.
+        </p>
+      </div>
+    </div>
+
+    <div class="screen">
+      <main class="board">
+        <section class="board-shell board-shell-ticker-hide" id="board-shell">
+          <div class="ticker-tape-shell hidden ticker-tape-bottom" id="ticker-tape-shell">
+            <div class="ticker-tape">
+              <div class="ticker-tape-track" id="ticker-tape-track"></div>
+            </div>
+          </div>
+
+          <header class="ticker-bar" id="ticker-bar">
+            <div class="market-strip">
+              <span class="title" id="board-title">S&amp;P 500 HEAT MAP</span>
+              <span class="index-price" id="index-price">Loading</span>
+              <span class="index-change" id="index-change">--</span>
+              <span class="session-label" id="session-label">CONNECTING</span>
+            </div>
+            <div class="meta">
+              <span id="summary-label">Loading board...</span>
+              <span class="hidden" id="header-wifi-label" aria-label="Wi-Fi disconnected"></span>
+              <span class="hidden" id="header-local-time">--</span>
+            </div>
+          </header>
+          <div class="board-grid" id="board-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <div class="settings-backdrop hidden" id="settings-backdrop" aria-hidden="true">
+      <section class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+        <header class="settings-header">
+          <div>
+            <h2 id="settings-title">Device Settings</h2>
+            <p>Press and hold the top bar to reopen this panel.</p>
+          </div>
+          <button class="button button-ghost" id="settings-close" type="button">Close</button>
+        </header>
+
+        <div class="settings-content">
+          <section class="settings-card">
+            <h3>Device</h3>
+            <div class="settings-stat-grid">
+              <div class="settings-stat">
+                <span class="settings-label">Hostname</span>
+                <span id="device-hostname">--</span>
+              </div>
+              <div class="settings-stat">
+                <span class="settings-label">Platform</span>
+                <span id="device-platform">--</span>
+              </div>
+              <div class="settings-stat">
+                <span class="settings-label">IP Address</span>
+                <span id="device-addresses">--</span>
+              </div>
+              <div class="settings-stat">
+                <span class="settings-label">Wi-Fi</span>
+                <span id="device-wifi-status">--</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="settings-card">
+            <h3>Startup</h3>
+            <label class="settings-field">
+              <span class="settings-label">Default Board</span>
+              <select id="startup-market-select">
+                <option value="sp500">S&amp;P 500</option>
+                <option value="nasdaq100">Nasdaq 100</option>
+                <option value="dow30">Dow 30</option>
+              </select>
+            </label>
+
+            <label class="settings-field">
+              <span class="settings-label">Hold To Open</span>
+              <input id="hold-duration-input" type="number" min="600" max="3000" step="100" />
+            </label>
+
+            <div class="settings-field settings-field-wide">
+              <span class="settings-label">Top Bar</span>
+              <div class="header-toggle-grid">
+                <button class="button header-toggle-button" id="show-last-sync-toggle" type="button">
+                  Last Sync
+                </button>
+                <button class="button header-toggle-button" id="show-wifi-toggle" type="button">
+                  Wi-Fi
+                </button>
+                <button class="button header-toggle-button" id="show-local-time-toggle" type="button">
+                  Local Time
+                </button>
+              </div>
+            </div>
+
+            <label class="settings-field">
+              <span class="settings-label">Ticker Tape Position</span>
+              <select id="ticker-tape-position-select">
+                <option value="bottom">Bottom</option>
+                <option value="top">Top</option>
+                <option value="hide">Hide</option>
+              </select>
+            </label>
+
+            <div class="settings-field">
+              <span class="settings-label">Add To Ticker Tape</span>
+              <div class="ticker-tape-editor">
+                <input id="ticker-tape-symbol-input" type="text" autocomplete="off" placeholder="Type ticker" />
+                <button class="button" id="add-ticker-tape-symbol" type="button">Add</button>
+              </div>
+            </div>
+
+            <div class="ticker-tape-symbols" id="ticker-tape-symbols">
+              <div class="wifi-empty">No ticker tape symbols yet.</div>
+            </div>
+            <div class="settings-card-message" id="ticker-message"></div>
+
+            <div class="settings-actions">
+              <button class="button button-primary" id="save-device-settings" type="button">
+                Save Device Settings
+              </button>
+            </div>
+          </section>
+
+          <section class="settings-card settings-card-wide">
+            <div class="settings-section-head">
+              <h3>Wi-Fi</h3>
+              <button class="button" id="scan-wifi" type="button">Scan Networks</button>
+            </div>
+
+            <div class="wifi-form">
+              <label class="settings-field">
+                <span class="settings-label">Region</span>
+                <select id="wifi-country-input">
+                  <option value="">Auto</option>
+                  <option value="US">United States</option>
+                  <option value="CA">Canada</option>
+                  <option value="MX">Mexico</option>
+                  <option value="GB">United Kingdom</option>
+                  <option value="IE">Ireland</option>
+                  <option value="DE">Germany</option>
+                  <option value="FR">France</option>
+                  <option value="ES">Spain</option>
+                  <option value="IT">Italy</option>
+                  <option value="NL">Netherlands</option>
+                  <option value="AU">Australia</option>
+                  <option value="NZ">New Zealand</option>
+                </select>
+              </label>
+
+              <label class="settings-field">
+                <span class="settings-label">Network</span>
+                <select class="wifi-network-select" id="wifi-networks">
+                  <option value="">No networks loaded yet</option>
+                </select>
+              </label>
+
+              <label class="settings-field">
+                <span class="settings-label">SSID</span>
+                <input id="wifi-ssid-input" type="text" autocomplete="off" />
+              </label>
+
+              <label class="settings-field">
+                <span class="settings-label">Password</span>
+                <div class="settings-input-row">
+                  <input id="wifi-password-input" type="password" autocomplete="new-password" />
+                  <button
+                    class="button button-ghost settings-input-toggle"
+                    id="wifi-password-toggle"
+                    type="button"
+                    aria-pressed="false"
+                  >
+                    Show
+                  </button>
+                </div>
+              </label>
+            </div>
+
+            <div class="settings-actions">
+              <button class="button button-primary" id="connect-wifi" type="button">
+                Connect Wi-Fi
+              </button>
+            </div>
+            <div class="settings-card-message" id="wifi-message"></div>
+          </section>
+
+          <section class="settings-card settings-card-wide">
+            <h3>Actions</h3>
+            <div class="settings-actions">
+              <button class="button" id="restart-app" type="button">Restart App</button>
+              <button class="button" id="restart-kiosk" type="button">Restart Kiosk</button>
+              <button class="button button-danger" id="reboot-device" type="button">
+                Reboot Device
+              </button>
+            </div>
+          </section>
+
+          <div class="settings-message" id="settings-message"></div>
+        </div>
+
+        <section class="touch-keyboard hidden" id="touch-keyboard" aria-label="Touch keyboard"></section>
+      </section>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
